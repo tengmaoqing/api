@@ -8,12 +8,18 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var sw    = require('./routes/service_worker');
+var editpage  = require('./routes/editpage');
+var swig = require('swig');
 
 var app = express();
 
+
+app.engine('html', swig.renderFile);
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'html');
+app.set('view cache', false);
+// app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -22,6 +28,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'HTMLPAGES')));
 
 
 app.all('*',function (req, res, next) {
@@ -40,6 +47,10 @@ app.all('*',function (req, res, next) {
 app.use('/', index);
 app.use('/users', users);
 app.use('/service_worker', sw);
+
+
+app.use('/createPage', editpage);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
