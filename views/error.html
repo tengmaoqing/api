@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>erroe</title>
+</head>
+<body>
+
+
+<div class="container">
+  <div class="page-header text-center text-danger">
+    <h2><span class="glyphicon glyphicon-exclamation-sign"></span> {{ error.status }}</h2>
+  </div>
+  <div class="alert alert-danger">
+    <p>{{ message }}</p>
+  </div>
+  {% if error.stack %}
+  <pre class="alert alert-warning">
+    {{ error.stack }}
+  </pre>
+  {% endif %}
+</div>
+
+</body>
+</html>
