@@ -32,7 +32,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'HTMLPAGES')));
 
-mongoose.connect(config.dbPath);
+mongoose.connect(config.dbPath,{useMongoClient: true});
 
 
 app.all('*',function (req, res, next) {
