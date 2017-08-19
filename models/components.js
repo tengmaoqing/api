@@ -7,10 +7,10 @@ var ComponentSchema = new Schema({
 	options: Object,
 	name: String,
 	html: String,
-  description: String,
+ 	description: String,
 	disabled: Boolean,
 	style: Object,
-  createDate: {type: Date, default: Date.now}
+  	createDate: {type: Date, default: Date.now}
 }, {
   versionKey: false
 });

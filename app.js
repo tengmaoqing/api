@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var timeout = require('connect-timeout')
 
 var config = require('./config.js');
 var index = require('./routes/index');
@@ -25,6 +26,7 @@ app.set('view cache', false);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(timeout('5s'))
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -32,6 +34,11 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'HTMLPAGES')));
 
+app.use(function(req, res, next) {
+  if(!req.timedout) next();
+});
+
+var timeout = require('connect-timeout')
 mongoose.connect(config.dbPath,{useMongoClient: true});
 
 
@@ -41,10 +48,9 @@ app.all('*',function (req, res, next) {
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
 
   if (req.method == 'OPTIONS') {
-    res.send(200);
-  }
-  else {
-    next();
+    res.sendStatus(200);
+  } else {
+    return next();
   }
 });
 
