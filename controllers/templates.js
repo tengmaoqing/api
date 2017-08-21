@@ -34,20 +34,44 @@ exports.getTemplates = function (req, res, next) {
     sort: {
       createDate: -1
     }
-	}, (err, result) => {
+	}).then(result => {
+		res.json(utils.dataWrap(result));
+	}).catch(err => {
 		if (err) {
 			err.status = 400;
 			return next(err);
 		}
-
-		res.json(utils.dataWrap(result));
 	});
 };
 
 exports.updateTemplate = function (req, res, next) {
+	const template = req.body;
 
+	Template.update({_id:template._id}, {$set:template}, function(err, result){
+    if(err) {
+      err.status = 400;
+      return next(err);
+    }
+      
+    return res.json(utils.dataWrap());
+  });
 };
 
 exports.deleteTemplate = function (req, res, next) {
+
+	const body = req.body;
+	const template = {
+		_id: body._id,
+		display: body.display
+	};
+
+	Template.update({_id:template._id}, {$set:template}, function(err, result){
+    if(err) {
+      err.status = 400;
+      return next(err);
+    }
+      
+    return res.json(utils.dataWrap());
+  });
 
 };
