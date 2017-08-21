@@ -4,8 +4,7 @@ const utils = require('../utils');
 
 exports.addTemplate = function (req, res, next) {
 	const body = req.body;
-	
-	console.log(body);
+
 	if (!body.name) {
     	res.json(utils.dataWrap(null, 'name 是必须的', 1));
     	return;
@@ -14,7 +13,6 @@ exports.addTemplate = function (req, res, next) {
 	const template = new Template(body);
 
 	template.save(function(err, data) {
-		console.log(data);
 		if (err) {
 			res.json(utils.dataWrap(err, '', -1));
 			return;
@@ -27,17 +25,29 @@ exports.addTemplate = function (req, res, next) {
 
 exports.getTemplates = function (req, res, next) {
 	const query = req.query;
+	const currentPage = query.currentPage || 1;
+	const pageSize = query.pageSize || 10;
 
-	Template.find().exce().then(data => {
-		console.log(data);
-		res.json(utils.dataWrap(data));
-	}).catch(err => next(err));
+	Template.paginate({}, {
+		page: currentPage,
+    limit: pageSize,
+    sort: {
+      createDate: -1
+    }
+	}, (err, result) => {
+		if (err) {
+			err.status = 400;
+			return next(err);
+		}
+
+		res.json(utils.dataWrap(result));
+	});
 };
 
 exports.updateTemplate = function (req, res, next) {
-	
+
 };
 
 exports.deleteTemplate = function (req, res, next) {
-	
+
 };
