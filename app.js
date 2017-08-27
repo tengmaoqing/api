@@ -26,7 +26,7 @@ app.set('view cache', false);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(timeout('5s'))
+app.use(timeout('6s'))
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -38,13 +38,15 @@ app.use(function(req, res, next) {
   if(!req.timedout) next();
 });
 
-var timeout = require('connect-timeout')
+var timeout = require('connect-timeout');
+
+// mongoose.Promise = global.Promise;
 mongoose.connect(config.dbPath,{useMongoClient: true});
 
 
 app.all('*',function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+  res.header('Access-Control-Allow-Headers', 'X-Udid, Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
 
   if (req.method == 'OPTIONS') {

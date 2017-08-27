@@ -27,17 +27,51 @@ exports.addComponent = function (req, res, next) {
 
 exports.getComponents = function (req, res, next) {
 	const query = req.query;
+	const currentPage = query.currentPage || 1;
+	const pageSize = query.pageSize || 10;
 
-	Component.find().then(data => {
-		console.log(data);
-		res.json(utils.dataWrap(data));
-	}).catch(err => next(err));
+	Component.paginate({}, {
+		page: currentPage,
+    limit: pageSize,
+    sort: {
+      createDate: -1
+    }
+	}).then(result => {
+		res.json(utils.dataWrap(result));
+	}).catch(err => {
+		if (err) {
+			err.status = 400;
+			return next(err);
+		}
+	});
 };
 
 exports.updateComponent = function (req, res, next) {
-	
+	const component = req.body;
+
+	Component.update({_id:component._id}, {$set:component}, function(err, result){
+    if(err) {
+      err.status = 400;
+      return next(err);
+    }
+      
+    return res.json(utils.dataWrap());
+  });
 };
 
 exports.deleteComponent = function (req, res, next) {
-	
+	const body = req.body;
+	const component = {
+		_id: body._id,
+		disabled: true
+	};
+
+	Component.update({_id:component._id}, {$set:component}, function(err, result){
+    if(err) {
+      err.status = 400;
+      return next(err);
+    }
+      
+    return res.json(utils.dataWrap());
+  });
 };

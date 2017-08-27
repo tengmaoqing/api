@@ -62,7 +62,7 @@ exports.deleteTemplate = function (req, res, next) {
 	const body = req.body;
 	const template = {
 		_id: body._id,
-		display: body.display
+		disabled: true
 	};
 
 	Template.update({_id:template._id}, {$set:template}, function(err, result){
