@@ -51,6 +51,7 @@ app.all('*',function (req, res, next) {
 
   if (req.method == 'OPTIONS') {
     res.sendStatus(200);
+    return;
   } else {
     return next();
   }

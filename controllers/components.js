@@ -4,8 +4,7 @@ const utils = require('../utils');
 
 exports.addComponent = function (req, res, next) {
 	const body = req.body;
-	
-	console.log(body);
+
 	if (!body.name) {
     	res.json(utils.dataWrap(null, 'name 是必须的', 1));
     	return;
@@ -30,20 +29,31 @@ exports.getComponents = function (req, res, next) {
 	const currentPage = query.currentPage || 1;
 	const pageSize = query.pageSize || 10;
 
-	Component.paginate({}, {
-		page: currentPage,
-    limit: pageSize,
-    sort: {
-      createDate: -1
-    }
-	}).then(result => {
-		res.json(utils.dataWrap(result));
-	}).catch(err => {
-		if (err) {
-			err.status = 400;
-			return next(err);
-		}
-	});
+
+  try {
+
+    (async function(){
+      let result = null;
+      if (query._id) {
+        result = await Component.findOne({_id: query._id}).exec();
+      } else {
+        result = await Component.paginate({}, {
+          page: currentPage,
+          limit: pageSize,
+          sort: {
+            createDate: -1
+          }
+        });
+      }
+
+      res.json(utils.dataWrap(result));
+    })() ;
+
+  } catch(err) {
+    err.status = 400;
+    return next(err);
+  }
+
 };
 
 exports.updateComponent = function (req, res, next) {
@@ -54,7 +64,7 @@ exports.updateComponent = function (req, res, next) {
       err.status = 400;
       return next(err);
     }
-      
+
     return res.json(utils.dataWrap());
   });
 };
@@ -71,7 +81,7 @@ exports.deleteComponent = function (req, res, next) {
       err.status = 400;
       return next(err);
     }
-      
+
     return res.json(utils.dataWrap());
   });
 };

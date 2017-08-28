@@ -4,8 +4,7 @@ const utils = require('../utils');
 
 exports.addPage = function (req, res, next) {
 	const body = req.body;
-	
-	console.log(body);
+
 	if (!body.name) {
     	res.json(utils.dataWrap(null, 'name 是必须的', 1));
     	return;
@@ -30,20 +29,30 @@ exports.getPages = function (req, res, next) {
 	const currentPage = query.currentPage || 1;
 	const pageSize = query.pageSize || 10;
 
-	Page.paginate({}, {
-		page: currentPage,
-    limit: pageSize,
-    sort: {
-      createDate: -1
-    }
-	}).then(result => {
-		res.json(utils.dataWrap(result));
-	}).catch(err => {
-		if (err) {
-			err.status = 400;
-			return next(err);
-		}
-	});
+  try {
+
+    (async function(){
+      let result = null;
+      if (query.pageID) {
+        result = await Page.findOne({_id: query.pageID}).exec();
+      } else {
+        result = await Page.paginate({}, {
+          page: currentPage,
+          limit: pageSize,
+          sort: {
+            createDate: -1
+          }
+        });
+      }
+
+      res.json(utils.dataWrap(result));
+    })() ;
+
+  } catch(err) {
+    err.status = 400;
+    return next(err);
+  }
+
 };
 
 exports.updatePage = function (req, res, next) {
@@ -54,7 +63,7 @@ exports.updatePage = function (req, res, next) {
       err.status = 400;
       return next(err);
     }
-      
+
     return res.json(utils.dataWrap());
   });
 };
@@ -71,7 +80,7 @@ exports.deletePage = function (req, res, next) {
       err.status = 400;
       return next(err);
     }
-      
+
     return res.json(utils.dataWrap());
   });
 };

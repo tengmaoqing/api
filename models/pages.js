@@ -3,7 +3,7 @@ Schema = mongoose.Schema,
 mongoosePaginate = require('mongoose-paginate');
 
 var PageSchema = new Schema({
-	pageName: String, //页面名称
+	name: String, //页面名称
 	template: String, //页面所用模板
 	head: String,	//页面头部自定义代码
 	footer: String, //页面底部自定义代码
@@ -12,7 +12,7 @@ var PageSchema = new Schema({
 	keyword: String, //页面key
 	description: String, //页面描述
 	content: String, //页面内容配置json
-	style: Object,	
+	style: Object, //主题
 	startDate: Date, //页面可访问开始时间
 	endDate: Date, //页面可访问结束时间
   	status: Boolean, //可见状态
