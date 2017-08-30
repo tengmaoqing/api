@@ -1,6 +1,9 @@
 
 const Component = require('../models/components.js');
 const utils = require('../utils');
+const fs = require('fs');
+const CONFIG = require('../config.js');
+const path = require('path');
 
 exports.addComponent = function (req, res, next) {
 	const body = req.body;
@@ -29,13 +32,29 @@ exports.getComponents = function (req, res, next) {
 	const currentPage = query.currentPage || 1;
 	const pageSize = query.pageSize || 10;
 
-
   try {
 
     (async function(){
       let result = null;
       if (query._id) {
         result = await Component.findOne({_id: query._id}).exec();
+
+        result = result.toObject();
+        if (result.pathHTML) {
+          result.html = await function () {
+            return new Promise((resolve, reject) => {
+
+              fs.readFile(path.join(CONFIG.COMPath, result.pathHTML), 'utf-8', (err, data) => {
+                if (err) {
+                  return reject(err);
+                }
+
+                return resolve(data);
+              });
+            })
+          }
+        }
+
       } else {
         result = await Component.paginate({}, {
           page: currentPage,

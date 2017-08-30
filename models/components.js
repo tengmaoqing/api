@@ -4,13 +4,17 @@ mongoosePaginate = require('mongoose-paginate');
 
 var ComponentSchema = new Schema({
 	type: String,
+  tag: Array,
+  isClosingTag: Boolean,
 	options: Object,
 	name: String,
 	html: String,
+  pathHTML: String,
+  pathJS: String,
  	description: String,
 	disabled: Boolean,
 	style: Object,
-  	createDate: {type: Date, default: Date.now}
+  createDate: {type: Date, default: Date.now}
 }, {
   versionKey: false
 });

@@ -6,13 +6,14 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var timeout = require('connect-timeout')
+var swig = require('swig');
 
 var config = require('./config.js');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var sw    = require('./routes/service_worker');
 var editpage  = require('./routes/editpage');
-var swig = require('swig');
+var tableData  = require('./routes/table_data');
 
 var app = express();
 
@@ -63,6 +64,7 @@ app.use('/service_worker', sw);
 
 
 app.use('/createPage', editpage);
+app.use('/tableData', tableData);
 
 
 // catch 404 and forward to error handler
