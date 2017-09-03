@@ -1,6 +1,8 @@
 
 const Page = require('../models/pages.js');
 const utils = require('../utils');
+const PackagePage = require('../utils/packagePage.js');
+
 
 exports.addPage = function (req, res, next) {
 	const body = req.body;
@@ -56,8 +58,30 @@ exports.getPages = function (req, res, next) {
 
 };
 
+function getAllPageCOM (arr, cacheMap = {}) {
+  if (!(arr instanceof Array)) {
+    return;
+  }
+  arr.forEach(item => {
+    if (!cacheMap[item._id]) {
+      cacheMap[item._id] = {
+        fileName: item.pathJS,
+        asyn: item.asyn,
+      };
+    }
+
+    if (item.childs) {
+      getAllPageCOM(item.childs, cacheMap);
+    }
+  });
+  return Object.values(cacheMap);
+};
+
 exports.updatePage = function (req, res, next) {
 	const page = req.body;
+
+  const content = JSON.parse(page.content);
+  PackagePage.package(getAllPageCOM(content), '').then();
 
 	Page.update({_id:page._id}, {$set:page}, function(err, result){
     if(err) {

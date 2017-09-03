@@ -9,7 +9,9 @@ const component = require('../controllers/components.js');
 /* GET home page. */
 router.get('/h5', editpage.h5Base);
 
-router.post('/generateTpl', editpage.generateTpl);
+// router.post('/generateTpl', editpage.generateTpl);
+
+router.post('/packagePage', editpage.packagePage);
 
 // router.post('/page', editpage.updatePage);
 router.post('/getComponents', editpage.getComponents);

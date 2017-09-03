@@ -1,8 +1,10 @@
 
-const utils = require('../utils');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
+
+const utils = require('../utils');
+const PackagePage = require('../utils/packagePage.js');
 
 // console.log(__dirname);
 const HTMLSDIR = path.resolve(__dirname, '../HTMLPAGES/');
@@ -47,6 +49,13 @@ function getPageStr(content) {
   return body;
 }
 
+exports.packagePage = function (req, res, next) {
+
+  PackagePage.package().then(result => {
+    res.json(utils.dataWrap())
+  });
+};
+
 
 exports.h5Base = function (req, res, next) {
 
@@ -55,121 +64,6 @@ exports.h5Base = function (req, res, next) {
 
 };
 
-exports.viewByPageName = function (req, res, next) {
-
-  var query = req.query;
-
-  var pageName = query.pageName;
-
-  if (!pageName) {
-    res.json(utils.dataWrap(null, 'pageName 是必须的', 1));
-    return;
-  }
-
-  const page = {
-    pageName: 'test.html',
-    pageID: 'SDDDF',
-    title: 'test',
-    description: 'test',
-    template: 'h5',
-    content: [
-      {
-        type: 'base',
-        name: 'test',
-        id: 'SDFGGGHSA',
-        options: {
-          text: 'yoyo', name: 'test',
-        },
-        html: '<div class="test1" data-mq-components-name="test"><h4>h4</h4><span class="hah">我是测试</span> <div class="data-mq-child"></div></div>',
-        style: {
-          width: '300px',
-          padding: '20px',
-          margin: '20px',
-          height: '100px',
-        },
-        directives: [{
-          name: 'data-directive-test',
-          value: 'hahah'
-        },{
-          name: 'data-directive-test2',
-          value: {
-            url: 'baidu'
-          }
-        }],
-        childs: [
-          {
-            name: 'child1',
-            id: 'SDFGGGHSA',
-            options: {
-              text: 'yoyo', name: 'child1',
-            },
-            html: '<div class="test1" data-mq-components-name="child1"><h4>h4</h4><span>child1</span></div>',
-          }
-        ]
-      },
-    ],
-  };
-
-  fs.readFile(HTMLSDIR + '/' + page.pageName, function (err, data) {
-    if (err) {
-       return next(err);
-    }
-
-    $ = cheerio.load(data.toString());
-
-    $('body').prepend(getPageStr(page.content));
-    console.log("异步读取: " + data.toString());
-  });
-
-
-
-
-};
-
-exports.generateTpl = function (req, res, next) {
-
-  var body = req.body;
-
-  var pageName = body.pageName;
-
-  if (!pageName) {
-    res.json(utils.dataWrap(null, 'pageName 是必须的', 1));
-    return;
-  }
-
-  var readerStream = fs.createReadStream(H5TPL);
-  var writerStream = fs.createWriteStream(HTMLSDIR + '/' + pageName);
-
-  writerStream.on('finish', () => {
-
-    res.json(utils.dataWrap());
-  })
-  readerStream.pipe(writerStream);
-};
-
-exports.updatePage = function (req, res, next) {
-  let body = req.body;
-
-  var pageName = body.pageName;
-  var pageData = body.pageData;
-
-  if (!pageName) {
-    res.json(utils.dataWrap(null, 'pageName 是必须的', 1));
-    return;
-  }
-
-  fs.writeFile(HTMLSDIR + '/' + pageName, pageData, function (err) {
-
-    if (err) {
-      next(err);
-      return;
-    }
-
-    res.json(utils.dataWrap({}))
-
-  })
-
-};
 
 
 exports.getComponents = function (req, res) {
