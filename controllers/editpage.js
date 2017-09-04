@@ -31,7 +31,7 @@ function getPageStr(content) {
 
   content.forEach((item) => {
     const $ = cheerio.load(item.html);
-    const $that = $(`[data-mq-components-name]`);
+    const $that = $(`[data-mq-components]`);
     $that.attr('data-mq-options', JSON.stringify(item.options));
 
     if (item.style) {
@@ -56,7 +56,7 @@ function getPageStr(content) {
 
 function getAllPageCOM (arr, cacheMap = {}) {
   if (!(arr instanceof Array)) {
-    return;
+    return [];
   }
   arr.forEach(item => {
     if (!cacheMap[item._id]) {
@@ -73,6 +73,17 @@ function getAllPageCOM (arr, cacheMap = {}) {
   return Object.values(cacheMap);
 };
 
+
+function getComponent(component) {
+  const fileName = component.fileName;
+  if (component.asyn) {
+    return `
+    import('${fileName}');`;
+  }
+  return `
+  import '${fileName}';`;
+};
+
 exports.packagePage = function (req, res, next) {
 
   const page = req.body;
@@ -83,20 +94,43 @@ exports.packagePage = function (req, res, next) {
   }
 
   const content = JSON.parse(page.content);
-  PackagePage.package(getAllPageCOM(content), getPageStr(content)).then(result => {
-
-    const cmd = `npm run dev --template`;
-    exec(cmd, {
-      cwd: path.join(CONFIG.COMPath, '../'),
-    }, (err, stdout, stderr) => {
-
-      if (err) {
-        res.json(utils.dataWrap(null, '打包错误', -1));
-      }
-
-      res.json(utils.dataWrap());
-    })
+  let jsContent = '';
+  getAllPageCOM(content).forEach((item) => {
+    jsContent += getComponent(item);
   });
+
+  const js = {
+    path: `${CONFIG.COMPath}/template_test.js`,
+    content: jsContent,
+  };
+
+  const html = {
+    path: `${CONFIG.COMPath}/template_test.html`,
+    content: getPageStr(content),
+  };
+  PackagePage.package(js, html).then(result => {
+    res.json(utils.dataWrap());
+  });
+};
+
+exports.doStructure = function (req, res, next) {
+  const cmd = `node build/dev-server.js --template ./page_components/template_test.html --port 8090 --openBrowser false --entry template_test.js`;
+  const child = exec(cmd, {
+    cwd: path.join(CONFIG.COMPath, '../'),
+  }, (err, stdout, stderr) => {
+
+    if (err) {
+      console.log(err);
+      return;
+    }
+  });
+
+  child.on('close', (code, signal) => console.log(`child code ${code} signal ${signal}`));
+  setTimeout(() => {
+    console.log('close child');
+    child.send({ exec: 'exit' });
+    child.kill();
+  }, 5000);
 };
 
 

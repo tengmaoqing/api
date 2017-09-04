@@ -12,7 +12,7 @@ function getComponent(component) {
 	import '${fileName}';`;
 }
 
-function writwFile(path, content) {
+function writeFile(path, content) {
 
 	return new Promise((resolve, reject) => {
 		fs.writeFile(path, content, (err) => {
@@ -63,14 +63,14 @@ function writwFile(path, content) {
 async function package(js, html) {
 	let result = null;
 	// console.log(data, html);
-	await writwFile(js.path, js.content);
+	await writeFile(js.path, js.content);
 	await writeFile(html.path, html.content);
 
 	return true;
 }
 
 module.exports = {
-	newEnteryFileByComponents,
-	newTemplateFile,
+	// newEnteryFileByComponents,
+	// newTemplateFile,
 	package,
 }

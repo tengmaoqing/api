@@ -12,9 +12,10 @@ router.get('/h5', editpage.h5Base);
 // router.post('/generateTpl', editpage.generateTpl);
 
 router.post('/packagePage', editpage.packagePage);
+router.post('/structure', editpage.doStructure);
 
 // router.post('/page', editpage.updatePage);
-router.post('/getComponents', editpage.getComponents);
+// router.post('/getComponents', editpage.getComponents);
 router.post('/getDirectives', editpage.getDirectives);
 
 router.get('/template', template.getTemplates);
