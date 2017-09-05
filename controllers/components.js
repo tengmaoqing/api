@@ -1,9 +1,9 @@
 
+const fs = require('fs');
+const path = require('path');
 const Component = require('../models/components.js');
 const utils = require('../utils');
-const fs = require('fs');
 const CONFIG = require('../config.js');
-const path = require('path');
 
 exports.addComponent = function (req, res, next) {
 	const body = req.body;

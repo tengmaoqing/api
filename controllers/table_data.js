@@ -1,8 +1,24 @@
 
-const CONFIG = require('../config.js');
 const fs = require('fs');
 const path = require('path');
+const util = require('util');
+const glob = require("glob");
 const utils = require('../utils');
+const CONFIG = require('../config.js');
+
+const readdir = util.promisify(fs.readdir);
+const readFile = util.promisify(fs.readFile);
+const stat = util.promisify(fs.stat);
+
+
+function fsExistsSync(pa) {
+    try{
+        fs.accessSync(pa, fs.F_OK);
+    }catch(e){
+        return false;
+    }
+    return true;
+}
 
 exports.getAllCOM = function (res, res, next) {
 
@@ -21,6 +37,39 @@ exports.getAllCOM = function (res, res, next) {
       // console.log(item);
     });
 
-    res.json(utils.dataWrap(dirs));
+    async function getDir () {
+      let result = [];
+      for (var i = dirs.length - 1; i >= 0; i--) {
+        const componentJson = path.join(CONFIG.COMPath, dirs[i], 'component.json');
+        let filename = 'index.js';
+        if (fsExistsSync(componentJson)) {
+          let cJSON = await readFile(componentJson);
+          cJSON = JSON.parse(cJSON);
+          filename = cJSON.main;
+        }
+
+        if (fsExistsSync(path.join(CONFIG.COMPath, dirs[i], filename))) {
+          result.push(`./${dirs[i]}/${filename}`);
+        }
+      }
+      res.json(utils.dataWrap(result));
+    }
+
+    getDir();
+
   });
 }
+
+exports.getAllCOMHTML = function (res, res, next) {
+
+  glob('*/*.html', {
+    cwd: CONFIG.COMPath,
+  }, (err, result) => {
+    if (err) {
+      next(err);
+      return;
+    }
+
+    res.json(utils.dataWrap(result));
+  })
+};
