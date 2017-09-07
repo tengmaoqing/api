@@ -26,9 +26,8 @@ function addDirectiveToStr($item, directives) {
   // return str;
 }
 
-function getPageStr(content) {
+function getPageBody(content) {
   let body = '';
-
   content.forEach((item) => {
     const $ = cheerio.load(item.html);
     const $that = $(`[data-mq-components]`);
@@ -42,7 +41,7 @@ function getPageStr(content) {
 
     let childStr = '';
     if (item.childs) {
-      childStr = getPageStr(item.childs);
+      childStr = getPageBody(item.childs);
     }
 
     $that.find('[data-child-wrap]').html(childStr);
@@ -53,6 +52,55 @@ function getPageStr(content) {
 
   return body;
 }
+
+function getPageStr(content, template) {
+
+  const $html = cheerio.load(template);
+  const bodyStr = getPageBody(content);
+  $html('body').prepend(bodyStr);
+
+  return $html.html('html');
+}
+
+function fillTemplate (page) {
+  if (!page.template) {
+    return;
+  }
+
+  const $ = cheerio.load(page.template);
+
+  const head = $('head');
+
+  head.append('<!-- engine by TMQ -->');
+  head.append(`<script>
+    document.domain = '127.0.0.1';
+    window.domain = '127.0.0.1';
+    </script>`);
+  if (page.title) {
+    $('title').remove();
+    head.append(`<title>${page.title}</title>`);
+  }
+
+  if (page.description) {
+    $('[name=description]').remove();
+    head.append(`<meta name="keywords" content="${page.description}">`);
+  }
+
+  if (page.keyword) {
+    $('[name=keywords]').remove();
+    head.append(`<meta name="keywords" content="${page.keyword}">`);
+  }
+
+  if (page.head) {
+    head.append(page.head);
+  }
+
+  if (page.footer) {
+    $('body').append(page.footer);
+  }
+
+  return $.html('html');
+};
 
 function getAllPageCOM (arr, cacheMap = {}) {
   if (!(arr instanceof Array)) {
@@ -99,6 +147,8 @@ exports.packagePage = function (req, res, next) {
     jsContent += getComponent(item);
   });
 
+  const template = fillTemplate(page);
+
   const js = {
     path: `${CONFIG.COMPath}/template_test.js`,
     content: jsContent,
@@ -106,7 +156,7 @@ exports.packagePage = function (req, res, next) {
 
   const html = {
     path: `${CONFIG.COMPath}/template_test.html`,
-    content: getPageStr(content),
+    content: getPageStr(content, template),
   };
   PackagePage.package(js, html).then(result => {
     res.json(utils.dataWrap());
@@ -114,7 +164,10 @@ exports.packagePage = function (req, res, next) {
 };
 
 exports.doStructure = function (req, res, next) {
-  const cmd = `node build/dev-server.js --template ./page_components/template_test.html --port 8090 --openBrowser false --entry template_test.js`;
+  // const cmd = `node build/dev-server.js --template ./page_components/template_test.html --port 8090 --openBrowser false --entry template_test.js`;
+
+  const options = req.body;
+  const cmd = 'node build/build.js --template ./page_components/template_test.html --entry template_test.js --productname test --relativePath';
   const child = exec(cmd, {
     cwd: path.join(CONFIG.COMPath, '../'),
   }, (err, stdout, stderr) => {
@@ -123,14 +176,16 @@ exports.doStructure = function (req, res, next) {
       console.log(err);
       return;
     }
+
+    res.json(utils.dataWrap());
   });
 
-  child.on('close', (code, signal) => console.log(`child code ${code} signal ${signal}`));
-  setTimeout(() => {
-    console.log('close child');
-    child.send({ exec: 'exit' });
-    child.kill();
-  }, 5000);
+  // child.on('close', (code, signal) => console.log(`child code ${code} signal ${signal}`));
+  // setTimeout(() => {
+  //   console.log('close child');
+  //   child.send({ exec: 'exit' });
+  //   child.kill();
+  // }, 5000);
 };
 
 

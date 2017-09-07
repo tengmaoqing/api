@@ -41,18 +41,14 @@ exports.getComponents = function (req, res, next) {
 
         result = result.toObject();
         if (result.pathHTML) {
-          result.html = await function () {
-            return new Promise((resolve, reject) => {
-
+          result.html = await new Promise((resolve, reject) => {
               fs.readFile(path.join(CONFIG.COMPath, result.pathHTML), 'utf-8', (err, data) => {
                 if (err) {
                   return reject(err);
                 }
-
                 return resolve(data);
               });
-            })
-          }
+            });
         }
 
       } else {
