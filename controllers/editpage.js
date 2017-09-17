@@ -30,7 +30,7 @@ function getPageBody(content) {
   let body = '';
   content.forEach((item) => {
     const $ = cheerio.load(item.html);
-    const $that = $(`[data-mq-components]`);
+    const $that = $('body').children();
     $that.attr('data-mq-options', JSON.stringify(item.options));
 
     if (item.style) {
@@ -107,11 +107,21 @@ function getAllPageCOM (arr, cacheMap = {}) {
     return [];
   }
   arr.forEach(item => {
-    if (!cacheMap[item._id]) {
-      cacheMap[item._id] = {
-        fileName: item.pathJS,
-        asyn: item.asyn,
-      };
+    // const cp = {
+    //   fileName: item.pathJS,
+    //   asyn: item.asyn,
+      // randomIDs: [item.$compoentRandomID],
+    // };
+    if (item.pathJS) { 
+      if (!cacheMap[item._id]) {
+        cacheMap[item._id] = {
+          fileName: item.pathJS,
+          asyn: item.asyn,
+          randomIDs: [item.$compoentRandomID],
+        };
+      } else {
+        cacheMap[item._id].randomIDs.push(item.$compoentRandomID);
+      }
     }
 
     if (item.childs) {
@@ -124,12 +134,27 @@ function getAllPageCOM (arr, cacheMap = {}) {
 
 function getComponent(component) {
   const fileName = component.fileName;
+  const randomName = `MQ_${+new Date()}`;
   if (component.asyn) {
     return `
-    import('${fileName}');`;
+    import('${fileName}').then(${randomName} => {
+      ${
+        component.randomIDs.map(item => `${randomName}(document.querySelector([data-mq-id=${item}]))`).join(`;
+        `)
+      }
+    });
+    `;
   }
   return `
-  import '${fileName}';`;
+  import ${randomName} from '${fileName}';
+  if (${randomName} instanceof Function) {
+    ${
+      component.randomIDs.map(item => `${randomName}(document.querySelector('[data-mq-id=${item}]'))` ).join(`;
+      `)
+    }
+  }
+  
+  `;
 };
 
 exports.packagePage = function (req, res, next) {
@@ -143,12 +168,12 @@ exports.packagePage = function (req, res, next) {
 
   const content = JSON.parse(page.content);
   let jsContent = '';
-  getAllPageCOM(content).forEach((item) => {
-    jsContent += getComponent(item);
+  getAllPageCOM(content).forEach((component) => {
+    jsContent += getComponent(component);
   });
 
   const template = fillTemplate(page);
-
+  
   const js = {
     path: `${CONFIG.COMPath}/template_test.js`,
     content: jsContent,
