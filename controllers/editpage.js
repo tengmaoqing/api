@@ -26,6 +26,19 @@ function addDirectiveToStr($item, directives) {
   // return str;
 }
 
+const baseJS = `
+  window.mqManger = {
+    _fns: {},
+    startCP(fn, id) {
+      if (!this._fns[id]) {
+        this._fns[id] = fn;
+      }
+
+      fn(document.querySelector('[data-mq-id="' + id + '"]'));
+    }
+  };
+`;
+
 function getPageBody(content) {
   let body = '';
   content.forEach((item) => {
@@ -134,12 +147,13 @@ function getAllPageCOM (arr, cacheMap = {}) {
 
 function getComponent(component) {
   const fileName = component.fileName;
-  const randomName = `MQ_${+new Date()}`;
+  const randomName = `MQ_${+new Date()}${Math.random().toString(32).slice(2)}`;
+  console.log(randomName);
   if (component.asyn) {
     return `
     import('${fileName}').then(${randomName} => {
       ${
-        component.randomIDs.map(item => `${randomName}(document.querySelector([data-mq-id=${item}]))`).join(`;
+        component.randomIDs.map(item => `${randomName}(document.querySelector([data-mq-id="${item}"]))`).join(`;
         `)
       }
     });
@@ -149,7 +163,7 @@ function getComponent(component) {
   import ${randomName} from '${fileName}';
   if (${randomName} instanceof Function) {
     ${
-      component.randomIDs.map(item => `${randomName}(document.querySelector('[data-mq-id=${item}]'))` ).join(`;
+      component.randomIDs.map(item => `mqManger.startCP(${randomName}, ${item})` ).join(`;
       `)
     }
   }
@@ -167,7 +181,10 @@ exports.packagePage = function (req, res, next) {
   }
 
   const content = JSON.parse(page.content);
-  let jsContent = '';
+  let jsContent = `
+    /* eslint-disable */
+    ${baseJS}
+  `;
   getAllPageCOM(content).forEach((component) => {
     jsContent += getComponent(component);
   });
