@@ -2,8 +2,8 @@ const path = require('path');
 
 const config = {
   env: "development",
-  dbPath: "mongodb://localhost/hyfyacht",
-  COMPath: path.join(__dirname, '../../program1/web develop/program/worker/src'),
+  dbPath: "mongodb://10.0.10.92/hyfyacht",
+  COMPath: path.join(__dirname, '../hsb_fd/src/components'),
 };
 
 module.exports = config;

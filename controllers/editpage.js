@@ -125,7 +125,7 @@ function getAllPageCOM (arr, cacheMap = {}) {
     //   asyn: item.asyn,
       // randomIDs: [item.$compoentRandomID],
     // };
-    if (item.pathJS) { 
+    if (item.pathJS) {
       if (!cacheMap[item._id]) {
         cacheMap[item._id] = {
           fileName: item.pathJS,
@@ -167,7 +167,7 @@ function getComponent(component) {
       `)
     }
   }
-  
+
   `;
 };
 
@@ -190,7 +190,7 @@ exports.packagePage = function (req, res, next) {
   });
 
   const template = fillTemplate(page);
-  
+
   const js = {
     path: `${CONFIG.COMPath}/template_test.js`,
     content: jsContent,
