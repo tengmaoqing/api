@@ -6,6 +6,7 @@ const child_process = require('child_process');
 const spawn = child_process.spawn;
 const exec = child_process.exec;
 
+const Page = require('../models/pages.js');
 const CONFIG = require('../config.js');
 const utils = require('../utils');
 const PackagePage = require('../utils/packagePage.js');
@@ -209,18 +210,32 @@ exports.doStructure = function (req, res, next) {
   // const cmd = `node build/dev-server.js --template ./page_components/template_test.html --port 8090 --openBrowser false --entry template_test.js`;
 
   const options = req.body;
-  const cmd = 'node build/build.js --template ./page_components/template_test.html --entry template_test.js --productname test --relativePath';
-  const child = exec(cmd, {
-    cwd: path.join(CONFIG.COMPath, '../'),
-  }, (err, stdout, stderr) => {
 
-    if (err) {
-      console.log(err);
+  (async function(){
+    let result = null;
+    result = await Page.findOne({_id: options.pageID}).exec();
+
+    if (!result) {
+      res.json(utils.dataWrap(null, '没有找到页面！', -1));
       return;
     }
 
-    res.json(utils.dataWrap());
-  });
+    const cmd = `node build/build.js --template ${CONFIG.COMPath}/template_test.html --entry template_test.js --productname ${result.name} --relativePath`;
+    const child = exec(cmd, {
+      cwd: path.join(CONFIG.COMPath, '../../'),
+    }, (err, stdout, stderr) => {
+
+      if (err) {
+        console.log(err);
+        return;
+      }
+
+      res.json(utils.dataWrap());
+    });
+
+  })() ;
+
+  return;
 
   // child.on('close', (code, signal) => console.log(`child code ${code} signal ${signal}`));
   // setTimeout(() => {
