@@ -220,7 +220,28 @@ exports.doStructure = function (req, res, next) {
       return;
     }
 
-    const cmd = `node build/build.js --template ${CONFIG.COMPath}/template_test.html --entry template_test.js --productname ${result.name} --relativePath`;
+    res.json(utils.dataWrap(null));
+
+    const templatePath = path.join(CONFIG.COMPath, 'template_test.html');
+    const publicPath = path.normalize(result.publicPath);
+    const entry = path.join(CONFIG.COMPath, 'template_test.js');
+
+    let cmd = `node build/build.js --template ${templatePath} --entry ${entry} --productname ${result.name}`;
+
+    if (result.filename) {
+      cmd += ` --filename ${result.filename} `;
+    }
+
+    if (result.extension) {
+      cmd += ` --extension ${result.extension} `;
+    }
+
+    if (result.publicPath) {
+      cmd += ` --publicPath ${publicPath} `;
+    }
+
+    console.log(cmd);
+
     const child = exec(cmd, {
       cwd: path.join(CONFIG.COMPath, '../../'),
     }, (err, stdout, stderr) => {
@@ -230,7 +251,7 @@ exports.doStructure = function (req, res, next) {
         return;
       }
 
-      res.json(utils.dataWrap());
+
     });
 
   })() ;

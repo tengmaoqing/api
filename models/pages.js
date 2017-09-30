@@ -7,6 +7,10 @@ var PageSchema = new Schema({
 	template: String, //页面所用模板
 	head: String,	//页面头部自定义代码
 	footer: String, //页面底部自定义代码
+	preLoad: String, //页面预加载代码，可打包
+	extension: String, //生成的文件后缀名
+	filename: String, //生成文件名
+	publicPath: String, //公共路径
 	url: String,	//访问页面的url
 	title: String,  //页面title
 	keyword: String, //页面key
