@@ -49,6 +49,7 @@ exports.getComponents = function (req, res, next) {
                 return resolve(data);
               });
             });
+          result.html = result.html ? result.html : '';
         }
 
       } else {

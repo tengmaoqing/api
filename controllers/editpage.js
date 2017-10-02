@@ -149,13 +149,12 @@ function getAllPageCOM (arr, cacheMap = {}) {
 function getComponent(component) {
   const fileName = component.fileName;
   const randomName = `MQ_${+new Date()}${Math.random().toString(32).slice(2)}`;
-  console.log(randomName);
   if (component.asyn) {
     return `
     import('${fileName}').then(${randomName} => {
       ${
-        component.randomIDs.map(item => `${randomName}(document.querySelector([data-mq-id="${item}"]))`).join(`;
-        `)
+        component.randomIDs.map(item => `mqManger.startCP(${randomName}, ${item})` ).join(`;
+      `)
       }
     });
     `;
@@ -223,10 +222,14 @@ exports.doStructure = function (req, res, next) {
     res.json(utils.dataWrap(null));
 
     const templatePath = path.join(CONFIG.COMPath, 'template_test.html');
-    const publicPath = path.normalize(result.publicPath);
+    const publicPath = path.normalize(result.publicPath || '/');
     const entry = path.join(CONFIG.COMPath, 'template_test.js');
 
-    let cmd = `node build/build.js --template ${templatePath} --entry ${entry} --productname ${result.name}`;
+    let cmd = `node build/build.js --template ${templatePath} --entry ${entry} --pagename ${result.name}`;
+
+    if (result.productname) {
+      cmd += ` --productname ${result.productname} `;
+    }
 
     if (result.filename) {
       cmd += ` --filename ${result.filename} `;
@@ -241,7 +244,6 @@ exports.doStructure = function (req, res, next) {
     }
 
     console.log(cmd);
-
     const child = exec(cmd, {
       cwd: path.join(CONFIG.COMPath, '../../'),
     }, (err, stdout, stderr) => {
@@ -251,7 +253,7 @@ exports.doStructure = function (req, res, next) {
         return;
       }
 
-
+      console.log(stdout);
     });
 
   })() ;

@@ -4,6 +4,7 @@ mongoosePaginate = require('mongoose-paginate');
 
 var PageSchema = new Schema({
 	name: String, //页面名称
+	productname: String, //项目名称
 	template: String, //页面所用模板
 	head: String,	//页面头部自定义代码
 	footer: String, //页面底部自定义代码
