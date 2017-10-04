@@ -26,7 +26,7 @@ exports.addTemplate = function (req, res, next) {
 exports.getTemplates = function (req, res, next) {
 	const query = req.query;
 	const currentPage = query.currentPage || 1;
-	const pageSize = query.pageSize || 10;
+	const pageSize = query.pageSize || 20;
 
 	Template.paginate({}, {
 		page: currentPage,
@@ -52,7 +52,7 @@ exports.updateTemplate = function (req, res, next) {
       err.status = 400;
       return next(err);
     }
-      
+
     return res.json(utils.dataWrap());
   });
 };
@@ -70,7 +70,7 @@ exports.deleteTemplate = function (req, res, next) {
       err.status = 400;
       return next(err);
     }
-      
+
     return res.json(utils.dataWrap());
   });
 

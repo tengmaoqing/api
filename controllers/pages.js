@@ -27,7 +27,7 @@ exports.addPage = function (req, res, next) {
 exports.getPages = function (req, res, next) {
 	const query = req.query;
 	const currentPage = query.currentPage || 1;
-	const pageSize = query.pageSize || 10;
+	const pageSize = query.pageSize || 20;
 
   try {
 
