@@ -76,7 +76,7 @@ function getPageStr(content, template) {
   return $html.html('html');
 }
 
-function fillTemplate (page) {
+function fillTemplate (page, isProduction) {
   if (!page.template) {
     return;
   }
@@ -86,10 +86,14 @@ function fillTemplate (page) {
   const head = $('head');
 
   head.append('<!-- engine by TMQ -->');
-  head.append(`<script>
-    document.domain = '127.0.0.1';
-    window.domain = '127.0.0.1';
-    </script>`);
+
+  if (isProduction) {
+    head.append(`<script>
+      document.domain = '127.0.0.1';
+      window.domain = '127.0.0.1';
+      </script>`);
+  }
+
   if (page.title) {
     $('title').remove();
     head.append(`<title>${page.title}</title>`);
@@ -171,15 +175,7 @@ function getComponent(component) {
   `;
 };
 
-exports.packagePage = function (req, res, next) {
-
-  const page = req.body;
-
-  if (!page) {
-    res.json(utils.dataWrap(null, '！', 1));
-    return;
-  }
-
+function buildTempFile (page, isProduction = true) {
   const content = JSON.parse(page.content);
   let jsContent = `
     /* eslint-disable */
@@ -189,7 +185,7 @@ exports.packagePage = function (req, res, next) {
     jsContent += getComponent(component);
   });
 
-  const template = fillTemplate(page);
+  const template = fillTemplate(page, isProduction);
 
   const js = {
     path: `${CONFIG.COMPath}/template_test.js`,
@@ -200,7 +196,19 @@ exports.packagePage = function (req, res, next) {
     path: `${CONFIG.COMPath}/template_test.html`,
     content: getPageStr(content, template),
   };
-  PackagePage.package(js, html).then(result => {
+  return PackagePage.package(js, html)
+};
+
+exports.packagePage = function (req, res, next) {
+
+  const page = req.body;
+
+  if (!page) {
+    res.json(utils.dataWrap(null, '！', 1));
+    return;
+  }
+
+  buildTempFile(page).then(result => {
     res.json(utils.dataWrap());
   });
 };
