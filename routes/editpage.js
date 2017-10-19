@@ -7,7 +7,7 @@ const page = require('../controllers/pages.js');
 const component = require('../controllers/components.js');
 
 /* GET home page. */
-router.get('/h5', editpage.h5Base);
+// router.get('/h5', editpage.h5Base);
 
 // router.post('/generateTpl', editpage.generateTpl);
 
@@ -16,7 +16,7 @@ router.post('/structure', editpage.doStructure);
 
 // router.post('/page', editpage.updatePage);
 // router.post('/getComponents', editpage.getComponents);
-router.post('/getDirectives', editpage.getDirectives);
+// router.post('/getDirectives', editpage.getDirectives);
 
 router.get('/template', template.getTemplates);
 router.post('/template', template.addTemplate);

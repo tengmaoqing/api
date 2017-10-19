@@ -76,10 +76,16 @@ function getPageStr(content, template) {
   return $html.html('html');
 }
 
-function fillTemplate (page, isProduction) {
+function fillTemplate (page, EVN) {
   if (!page.template) {
     return;
   }
+
+  const EVNS = {
+    PRODUCTION: 'production',
+    DEV: 'dev',
+    TEST: 'test'
+  };
 
   const $ = cheerio.load(page.template);
 
@@ -87,7 +93,7 @@ function fillTemplate (page, isProduction) {
 
   head.append('<!-- engine by TMQ -->');
 
-  if (isProduction) {
+  if (EVNS.PRODUCTION !== EVN) {
     head.append(`<script>
       document.domain = '127.0.0.1';
       window.domain = '127.0.0.1';
@@ -175,8 +181,12 @@ function getComponent(component) {
   `;
 };
 
-function buildTempFile (page, isProduction = true) {
+function buildTempFile (page, opt) {
   const content = JSON.parse(page.content);
+  const JSFILE = opt.entry;
+  const HTMLFILE = opt.tpl;
+  const ENV = opt.env
+
   let jsContent = `
     /* eslint-disable */
     ${baseJS}
@@ -185,15 +195,15 @@ function buildTempFile (page, isProduction = true) {
     jsContent += getComponent(component);
   });
 
-  const template = fillTemplate(page, isProduction);
+  const template = fillTemplate(page, ENV);
 
   const js = {
-    path: `${CONFIG.COMPath}/template_test.js`,
+    path: `${CONFIG.COMPath}/${JSFILE}`,
     content: jsContent,
   };
 
   const html = {
-    path: `${CONFIG.COMPath}/template_test.html`,
+    path: `${CONFIG.COMPath}/${HTMLFILE}`,
     content: getPageStr(content, template),
   };
   return PackagePage.package(js, html)
@@ -208,15 +218,31 @@ exports.packagePage = function (req, res, next) {
     return;
   }
 
-  buildTempFile(page).then(result => {
+  const options = {
+    entry: 'template_test.js',
+    tpl: 'template_test.html',
+    env: 'dev'
+  };
+
+  buildTempFile(page, options).then(result => {
     res.json(utils.dataWrap());
   });
 };
 
+/**
+ * 构建上线
+ * @Author   TMQ
+ * @DateTime 2017-10-17T21:06:10+0800
+ * @param    {[type]}                 req  [description]
+ * @param    {[type]}                 res  [description]
+ * @param    {Function}               next [description]
+ * @return   {[type]}                      [description]
+ */
 exports.doStructure = function (req, res, next) {
   // const cmd = `node build/dev-server.js --template ./page_components/template_test.html --port 8090 --openBrowser false --entry template_test.js`;
 
   const options = req.body;
+
 
   (async function(){
     let result = null;
@@ -227,11 +253,19 @@ exports.doStructure = function (req, res, next) {
       return;
     }
 
+    const BUILDOPTIONS = {
+      entry: `product_${result.name}.js`,
+      tpl: `product_${result.name}.html`,
+      env: 'production'
+    };
+
+    await buildTempFile(result, BUILDOPTIONS);
+
     res.json(utils.dataWrap(null));
 
-    const templatePath = path.join(CONFIG.COMPath, 'template_test.html');
+    const templatePath = path.join(CONFIG.COMPath, BUILDOPTIONS.tpl);
     const publicPath = path.normalize(result.publicPath || '/');
-    const entry = path.join(CONFIG.COMPath, 'template_test.js');
+    const entry = path.join(CONFIG.COMPath, BUILDOPTIONS.entry);
 
     let cmd = `node build/build.js --template ${templatePath} --entry ${entry} --pagename ${result.name}`;
 
@@ -274,50 +308,4 @@ exports.doStructure = function (req, res, next) {
   //   child.send({ exec: 'exit' });
   //   child.kill();
   // }, 5000);
-};
-
-
-exports.h5Base = function (req, res, next) {
-
-  let uri = req.query.uri;
-  res.render('h5', { content: '<div>123</div> <h2>134455</h2>' });
-
-};
-
-
-
-exports.getComponents = function (req, res) {
-
-  const components = [{
-    name: 'button',
-    html: '<button class="button button-default">我是button</button>',
-    options: {
-
-    },
-    componentId: 12345,
-    createDate: 124,
-  },{
-    name: 'container',
-    html: '<div class="container"></div>',
-    componentId: 2346
-  }];
-
-  res.json(utils.dataWrap(components));
-
-};
-
-exports.getDirectives = function (req, res) {
-
-  const directives = [{
-    name: '发短信',
-    directive: 'data-sendmsg',
-    options: {
-
-    },
-    componentId: 12345,
-    createDate: 124,
-  }];
-
-  res.json(utils.dataWrap(directives));
-
 };
