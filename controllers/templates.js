@@ -25,8 +25,8 @@ exports.addTemplate = function (req, res, next) {
 
 exports.getTemplates = function (req, res, next) {
 	const query = req.query;
-	const currentPage = query.currentPage || 1;
-	const pageSize = query.pageSize || 20;
+	const currentPage = Number(query.currentPage) || 1;
+	const pageSize = Number(query.pageSize) || 20;
 
 	Template.paginate({}, {
 		page: currentPage,

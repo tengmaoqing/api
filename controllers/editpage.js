@@ -10,6 +10,7 @@ const Page = require('../models/pages.js');
 const CONFIG = require('../config.js');
 const utils = require('../utils');
 const PackagePage = require('../utils/packagePage.js');
+const Template = require('../models/templates.js');
 
 // console.log(__dirname);
 const HTMLSDIR = path.resolve(__dirname, '../HTMLPAGES/');
@@ -77,53 +78,62 @@ function getPageStr(content, template) {
 }
 
 function fillTemplate (page, EVN) {
-  if (!page.template) {
-    return;
-  }
+  return (async function () {
+    let templateHTML = '';
+    const templateObj = await Template.findOne({_id: page.templateId}).exec();
 
-  const EVNS = {
-    PRODUCTION: 'production',
-    DEV: 'dev',
-    TEST: 'test'
-  };
+    if (templateObj && templateObj.toObject()) {
+      templateHTML = templateObj.html;
+    }
+    if (!templateHTML) {
+      templateHTML = page.template;
+    }
+    if (!templateHTML) {
+      return;
+    }
 
-  const $ = cheerio.load(page.template);
+    const EVNS = {
+      PRODUCTION: 'production',
+      DEV: 'dev',
+      TEST: 'test'
+    };
 
-  const head = $('head');
+    const $ = cheerio.load(templateHTML);
+    const head = $('head');
 
-  head.append('<!-- engine by TMQ -->');
+    head.append('<!-- engine by TMQ -->');
+    if (EVNS.PRODUCTION !== EVN) {
+      head.append(`<script>
+        document.domain = '127.0.0.1';
+        window.domain = '127.0.0.1';
+        </script>`);
+    }
 
-  if (EVNS.PRODUCTION !== EVN) {
-    head.append(`<script>
-      document.domain = '127.0.0.1';
-      window.domain = '127.0.0.1';
-      </script>`);
-  }
+    if (page.title) {
+      $('title').remove();
+      head.append(`<title>${page.title}</title>`);
+    }
 
-  if (page.title) {
-    $('title').remove();
-    head.append(`<title>${page.title}</title>`);
-  }
+    if (page.description) {
+      $('[name=description]').remove();
+      head.append(`<meta name="keywords" content="${page.description}">`);
+    }
 
-  if (page.description) {
-    $('[name=description]').remove();
-    head.append(`<meta name="keywords" content="${page.description}">`);
-  }
+    if (page.keyword) {
+      $('[name=keywords]').remove();
+      head.append(`<meta name="keywords" content="${page.keyword}">`);
+    }
 
-  if (page.keyword) {
-    $('[name=keywords]').remove();
-    head.append(`<meta name="keywords" content="${page.keyword}">`);
-  }
+    if (page.head) {
+      head.append(page.head);
+    }
 
-  if (page.head) {
-    head.append(page.head);
-  }
+    if (page.footer) {
+      $('body').append(page.footer);
+    }
 
-  if (page.footer) {
-    $('body').append(page.footer);
-  }
-
-  return $.html('html');
+    return $.html('html');
+  })();
 };
 
 function getAllPageCOM (arr, cacheMap = {}) {
@@ -194,19 +204,20 @@ function buildTempFile (page, opt) {
   getAllPageCOM(content).forEach((component) => {
     jsContent += getComponent(component);
   });
+  return (async function () {
+    const template = await fillTemplate(page, ENV);
 
-  const template = fillTemplate(page, ENV);
+    const js = {
+      path: `${CONFIG.COMPath}/${JSFILE}`,
+      content: jsContent,
+    };
 
-  const js = {
-    path: `${CONFIG.COMPath}/${JSFILE}`,
-    content: jsContent,
-  };
-
-  const html = {
-    path: `${CONFIG.COMPath}/${HTMLFILE}`,
-    content: getPageStr(content, template),
-  };
-  return PackagePage.package(js, html)
+    const html = {
+      path: `${CONFIG.COMPath}/${HTMLFILE}`,
+      content: getPageStr(content, template),
+    };
+    return PackagePage.package(js, html);
+  })();
 };
 
 exports.packagePage = function (req, res, next) {
