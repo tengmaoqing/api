@@ -13,6 +13,7 @@ const component = require('../controllers/components.js');
 
 router.post('/packagePage', editpage.packagePage);
 router.post('/structure', editpage.doStructure);
+router.post('/genPage', editpage.genPage);
 
 // router.post('/page', editpage.updatePage);
 // router.post('/getComponents', editpage.getComponents);

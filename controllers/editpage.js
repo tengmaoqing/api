@@ -13,9 +13,12 @@ const PackagePage = require('../utils/packagePage.js');
 const Template = require('../models/templates.js');
 
 // console.log(__dirname);
-const HTMLSDIR = path.resolve(__dirname, '../HTMLPAGES/');
-const H5TPL = path.resolve(__dirname, '../views/h5.html');
-
+const ASSETSROOT = 'dist_page/m6';
+const EVNS = {
+  PRODUCTION: 'production',
+  DEV: 'dev',
+  TEST: 'test'
+};
 
 function addDirectiveToStr($item, directives) {
 
@@ -72,6 +75,7 @@ function getPageStr(content, template) {
 
   const $html = cheerio.load(template);
   const bodyStr = getPageBody(content);
+  $html('body>*').remove(':not(script):not(link)');
   $html('body').prepend(bodyStr);
 
   return $html.html('html');
@@ -91,12 +95,6 @@ function fillTemplate (page, EVN) {
     if (!templateHTML) {
       return;
     }
-
-    const EVNS = {
-      PRODUCTION: 'production',
-      DEV: 'dev',
-      TEST: 'test'
-    };
 
     const $ = cheerio.load(templateHTML);
     const head = $('head');
@@ -220,12 +218,39 @@ function buildTempFile (page, opt) {
   })();
 };
 
+exports.genPage = function (req, res, next) {
+  const page = req.body;
+
+  if (!page) {
+    res.json(utils.dataWrap(null, '没有页面数据', 1));
+    return;
+  }
+
+  return (async function () {
+    const template = await fillTemplate(page, EVNS.PRODUCTION);
+
+    const html = {
+      path: `${CONFIG.COMPath}/${ASSETSROOT}/${page.filename}.${page.extension}`,
+      content: getPageStr(JSON.parse(page.content), template),
+    };
+
+    fs.writeFile(html.path, html.content, (err) => {
+      if (err) {
+        res.json(utils.dataWrap(null, '生成文件错误', 1));        
+        return;
+      }
+
+      res.json(utils.dataWrap());
+    });
+  })();
+};
+
 exports.packagePage = function (req, res, next) {
 
   const page = req.body;
 
   if (!page) {
-    res.json(utils.dataWrap(null, '！', 1));
+    res.json(utils.dataWrap(null, '没有页面数据', 1));
     return;
   }
 

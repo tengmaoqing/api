@@ -7,6 +7,7 @@ var PageSchema = new Schema({
 	productname: String, //项目名称
 	templateId: {type: Schema.Types.ObjectId, ref: 'templates'}, //模板id
 	templateName: String, 
+	forkId: {type: Schema.Types.ObjectId, ref: 'pages'},
 	template: String, //页面所用模板
 	head: String,	//页面头部自定义代码
 	footer: String, //页面底部自定义代码

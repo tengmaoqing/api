@@ -14,6 +14,8 @@ var ComponentSchema = new Schema({
  	description: String, // 描述
 	disabled: Boolean, //是否禁用
 	style: Object, //直出sytle样式
+  testTime: Date,
+  testStatus: Boolean,
   createDate: {type: Date, default: Date.now}
 }, {
   versionKey: false
