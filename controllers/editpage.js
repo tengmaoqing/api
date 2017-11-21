@@ -228,15 +228,17 @@ exports.genPage = function (req, res, next) {
 
   return (async function () {
     const template = await fillTemplate(page, EVNS.PRODUCTION);
+    const extension = page.extension || 'html';
 
     const html = {
-      path: `${CONFIG.COMPath}/${ASSETSROOT}/${page.filename}.${page.extension}`,
+      path: path.join(CONFIG.COMPath, '../..', `/${ASSETSROOT}/${page.name}/${page.filename}.${extension}`),
       content: getPageStr(JSON.parse(page.content), template),
     };
-
+    console.log(html.path);
     fs.writeFile(html.path, html.content, (err) => {
       if (err) {
-        res.json(utils.dataWrap(null, '生成文件错误', 1));        
+        console.log(err);
+        res.json(utils.dataWrap(null, '生成文件错误', 1));
         return;
       }
 

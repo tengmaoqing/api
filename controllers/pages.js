@@ -36,7 +36,11 @@ exports.getPages = function (req, res, next) {
       if (query.pageID) {
         result = await Page.findOne({_id: query.pageID}).exec();
       } else {
-        result = await Page.paginate({}, {
+        result = await Page.paginate({
+          disabled: {
+            $ne: true
+          }
+        }, {
           page: currentPage,
           limit: pageSize,
           sort: {
@@ -69,9 +73,9 @@ exports.updatePage = function (req, res, next) {
 };
 
 exports.deletePage = function (req, res, next) {
-	const body = req.body;
+	const query = req.query;
 	const page = {
-		_id: body._id,
+		_id: query._id,
 		disabled: true
 	};
 

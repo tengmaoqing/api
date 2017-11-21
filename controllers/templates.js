@@ -59,7 +59,7 @@ exports.updateTemplate = function (req, res, next) {
 
 exports.deleteTemplate = function (req, res, next) {
 
-	const body = req.body;
+	const body = req.query;
 	const template = {
 		_id: body._id,
 		disabled: true

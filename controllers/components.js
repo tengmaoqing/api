@@ -82,7 +82,7 @@ exports.updateComponent = function (req, res, next) {
 };
 
 exports.deleteComponent = function (req, res, next) {
-	const body = req.body;
+	const body = req.query;
 	const component = {
 		_id: body._id,
 		disabled: true

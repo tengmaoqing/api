@@ -5,11 +5,10 @@ const util = require('util');
 const glob = require("glob");
 const utils = require('../utils');
 const CONFIG = require('../config.js');
-
+const ENUVALUES = require('../models/enumeration_values');
 const readdir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 const stat = util.promisify(fs.stat);
-
 
 function fsExistsSync(pa) {
     try{
@@ -72,4 +71,28 @@ exports.getAllCOMHTML = function (res, res, next) {
 
     res.json(utils.dataWrap(result));
   })
+};
+
+exports.getCategorys = function (res, res, next) {
+  const CATEGORY = ENUVALUES.CATEGORY;
+  const Categorys = [
+    {
+      typeId: CATEGORY.COMPONENT,
+      des: '组件',
+    },
+    {
+      typeId: CATEGORY.PAGE,
+      des: '页面',
+    },
+    {
+      typeId: CATEGORY.TEMPLATE,
+      des: '模板',
+    },
+    {
+      typeId: CATEGORY.PROJECT,
+      des: '项目',
+    }
+  ];
+
+  res.json(utils.dataWrap(Categorys));
 };
