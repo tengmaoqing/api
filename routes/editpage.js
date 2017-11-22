@@ -5,6 +5,7 @@ const editpage = require('../controllers/editpage.js');
 const template = require('../controllers/templates.js');
 const page = require('../controllers/pages.js');
 const component = require('../controllers/components.js');
+const project = require('../controllers/project.js');
 
 /* GET home page. */
 // router.get('/h5', editpage.h5Base);
@@ -33,5 +34,10 @@ router.get('/component', component.getComponents);
 router.post('/component', component.addComponent);
 router.put('/component', component.updateComponent);
 router.delete('/component', component.deleteComponent);
+
+router.get('/project', project.getProject);
+router.post('/project', project.addProject);
+router.put('/project', project.updateProject);
+router.delete('/project', project.deleteProject);
 
 module.exports = router;

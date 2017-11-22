@@ -73,6 +73,20 @@ exports.getAllCOMHTML = function (res, res, next) {
   })
 };
 
+exports.getAllSRC = function (res, res, next) {
+
+  glob('../common/**/*.*(js|css)', {
+    cwd: CONFIG.COMPath,
+  }, (err, result) => {
+    if (err) {
+      next(err);
+      return;
+    }
+
+    res.json(utils.dataWrap(result));
+  })
+};
+
 exports.getCategorys = function (res, res, next) {
   const CATEGORY = ENUVALUES.CATEGORY;
   const Categorys = [

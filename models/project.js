@@ -2,7 +2,7 @@
 * @Author: tengmaoqing
 * @Date:   2017-11-21 16:09:12
 * @Last Modified by:   tengmaoqing
-* @Last Modified time: 2017-11-21 16:29:12
+* @Last Modified time: 2017-11-22 10:32:47
 */
 
 var mongoose = require('mongoose'),
@@ -15,7 +15,6 @@ var ProjectSchema = new Schema({
   remark: String,
   commonSrc: Array, // [{src: '', position: 'body', type: 'js', customStr: ''}]
   templateId: {type: Schema.Types.ObjectId, ref: 'templates'}, //模板id
-  templateName: String,
   style: String,
   disabled: Boolean,
   createDate: {type: Date, default: Date.now},

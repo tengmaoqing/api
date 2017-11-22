@@ -5,8 +5,9 @@ mongoosePaginate = require('mongoose-paginate');
 var PageSchema = new Schema({
 	name: String, //页面名称
 	productname: String, //项目名称
+	projectId: {type: Schema.Types.ObjectId, ref: 'project'}, //项目ID
 	templateId: {type: Schema.Types.ObjectId, ref: 'templates'}, //模板id
-	templateName: String, 
+	templateName: String,
 	forkId: {type: Schema.Types.ObjectId, ref: 'pages'},
 	template: String, //页面所用模板
 	head: String,	//页面头部自定义代码
@@ -26,9 +27,11 @@ var PageSchema = new Schema({
   	status: Boolean, //可见状态
 	disabled: Boolean, //是否禁用
 	remark: String,
-  	createDate: {type: Date, default: Date.now}
+  createDate: {type: Date, default: Date.now},
+  updateTime: {type: Date, default: Date.now}
 }, {
-  versionKey: false
+  versionKey: false,
+  timestamps: { createdAt: 'createDate', updatedAt: 'updateTime' }
 });
 
 PageSchema.plugin(mongoosePaginate);
