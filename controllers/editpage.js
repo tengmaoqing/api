@@ -7,6 +7,7 @@ const spawn = child_process.spawn;
 const exec = child_process.exec;
 
 const Page = require('../models/pages.js');
+const Project = require('../models/project.js');
 const CONFIG = require('../config.js');
 const utils = require('../utils');
 const PackagePage = require('../utils/packagePage.js');
@@ -35,6 +36,11 @@ const baseJS = `
   window.mqManger = {
     _fns: {},
     startCP(fn, id) {
+
+      if (!(fn instanceof Function)) {
+        return;
+      }
+
       if (!this._fns[id]) {
         this._fns[id] = fn;
       }
@@ -47,6 +53,9 @@ const baseJS = `
 function getPageBody(content) {
   let body = '';
   content.forEach((item) => {
+    if (!item.html) {
+      return;
+    }
     const $ = cheerio.load(item.html);
     const $that = $('body').children();
     $that.attr('data-mq-options', JSON.stringify(item.options));
@@ -170,9 +179,11 @@ function getComponent(component) {
   if (component.asyn) {
     return `
     import('${fileName}').then(${randomName} => {
-      ${
-        component.randomIDs.map(item => `mqManger.startCP(${randomName}, ${item})` ).join(`;
-      `)
+      if (${randomName} instanceof Function) {
+        ${
+          component.randomIDs.map(item => `mqManger.startCP(${randomName}, ${item})` ).join(`;
+        `)
+        }
       }
     });
     `;
@@ -234,7 +245,6 @@ exports.genPage = function (req, res, next) {
       path: path.join(CONFIG.COMPath, '../..', `/${ASSETSROOT}/${page.name}/${page.filename}.${extension}`),
       content: getPageStr(JSON.parse(page.content), template),
     };
-    console.log(html.path);
     fs.writeFile(html.path, html.content, (err) => {
       if (err) {
         console.log(err);
@@ -262,8 +272,33 @@ exports.packagePage = function (req, res, next) {
     env: 'dev'
   };
 
-  buildTempFile(page, options).then(result => {
+  (async function () {
+
+    const project = await Project.findOne({_id: page.projectId});
+    if (project) {
+      if (!page.templateId && project.templateId) {
+        page.templateId = project.templateId;
+      }
+
+      /**
+       * 开发模式注入项目公共资源
+       * @type {[type]}
+       */
+      const commonSrc = project.commonSrc;
+      if (commonSrc) {
+        page.content = JSON.parse(page.content);
+        page.content = commonSrc.map(srcObj => ({
+          pathJS: srcObj.src,
+          _id: +new Date() + Math.random().toString(32).slice(2),
+        })).concat(page.content);
+        page.content = JSON.stringify(page.content);
+      }
+    }
+
+    await buildTempFile(page, options);
     res.json(utils.dataWrap());
+  })().catch(err => {
+    console.log(err);
   });
 };
 
@@ -281,7 +316,6 @@ exports.doStructure = function (req, res, next) {
 
   const options = req.body;
 
-
   (async function(){
     let result = null;
     result = await Page.findOne({_id: options.pageID}).exec();
@@ -297,9 +331,16 @@ exports.doStructure = function (req, res, next) {
       env: 'production'
     };
 
+    const project = await Project.findOne({_id: result.projectId});
+
+    if (!result.templateId && project && project.templateId) {
+      result.templateId = project.templateId;
+    }
+
     await buildTempFile(result, BUILDOPTIONS);
 
     res.json(utils.dataWrap(null));
+
 
     const templatePath = path.join(CONFIG.COMPath, BUILDOPTIONS.tpl);
     const publicPath = path.normalize(result.publicPath || '/');
@@ -307,8 +348,11 @@ exports.doStructure = function (req, res, next) {
 
     let cmd = `node build/build.js --template ${templatePath} --entry ${entry} --pagename ${result.name}`;
 
-    if (result.productname) {
-      cmd += ` --productname ${result.productname} `;
+    if (project) {
+      cmd += ` --productname ${project.name} `;
+      if (project.commonSrc) {
+        cmd += ` --commonSrc ${Buffer.from(JSON.stringify(project.commonSrc)).toString('base64')} `;
+      }
     }
 
     if (result.filename) {
