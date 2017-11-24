@@ -28,6 +28,7 @@ exports.getPages = function (req, res, next) {
 	const query = req.query;
 	const currentPage = Number(query.currentPage) || 1;
 	const pageSize = Number(query.pageSize) || 20;
+  const q = query.q;
 
   try {
 
@@ -36,11 +37,21 @@ exports.getPages = function (req, res, next) {
       if (query.pageID) {
         result = await Page.findOne({_id: query.pageID}).exec();
       } else {
-        result = await Page.paginate({
+
+        let queryObj = {
           disabled: {
             $ne: true
-          }
-        }, {
+          },
+        };
+
+        if (q) {
+          queryObj.$or = [
+            {name: {$regex: q}},
+            {description: {$regex: q}},
+          ];
+        }
+
+        result = await Page.paginate(queryObj, {
           page: currentPage,
           limit: pageSize,
           sort: {

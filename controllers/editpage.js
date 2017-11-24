@@ -316,6 +316,8 @@ exports.doStructure = function (req, res, next) {
 
   const options = req.body;
 
+  let environment = options.environment === EVNS.TEST ? EVNS.TEST : EVNS.PRODUCTION;
+  console.log(environment);
   (async function(){
     let result = null;
     result = await Page.findOne({_id: options.pageID}).exec();
@@ -328,7 +330,7 @@ exports.doStructure = function (req, res, next) {
     const BUILDOPTIONS = {
       entry: `product_${result.name}.js`,
       tpl: `product_${result.name}.html`,
-      env: 'production'
+      env: EVNS.PRODUCTION
     };
 
     const project = await Project.findOne({_id: result.projectId});
@@ -340,13 +342,11 @@ exports.doStructure = function (req, res, next) {
     await buildTempFile(result, BUILDOPTIONS);
 
     res.json(utils.dataWrap(null));
-
-
     const templatePath = path.join(CONFIG.COMPath, BUILDOPTIONS.tpl);
     const publicPath = path.normalize(result.publicPath || '/');
     const entry = path.join(CONFIG.COMPath, BUILDOPTIONS.entry);
 
-    let cmd = `node build/build.js --template ${templatePath} --entry ${entry} --pagename ${result.name}`;
+    let cmd = `node build/build.js --template ${templatePath} --entry ${entry} --pagename ${result.name} --environment ${environment}`;
 
     if (project) {
       cmd += ` --productname ${project.name} `;
