@@ -14,6 +14,7 @@ var users = require('./routes/users');
 var sw    = require('./routes/service_worker');
 var editpage  = require('./routes/editpage');
 var tableData  = require('./routes/table_data');
+var utils  = require('./routes/utils');
 
 var app = express();
 
@@ -62,10 +63,10 @@ app.use('/', index);
 app.use('/users', users);
 app.use('/service_worker', sw);
 
-
 app.use('/createPage', editpage);
 app.use('/tableData', tableData);
 
+app.use('/utils', utils);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
