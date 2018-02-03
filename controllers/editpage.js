@@ -2,8 +2,9 @@
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
+const Mustache = require('mustache');
 const child_process = require('child_process');
-const spawn = child_process.spawn;
+// const spawn = child_process.spawn;
 const exec = child_process.exec;
 
 const htmlEncode = require('htmlencode').htmlEncode;
@@ -57,10 +58,12 @@ const baseJS = `
 function getPageBody(content) {
   let body = '';
   content.forEach((item) => {
-    if (!item.html) {
+    let tpl = item.html;
+    tpl = Mustache.render(tpl, JSON.parse(item.vars || null));
+    if (!tpl) {
       return;
     }
-    const $ = cheerio.load(item.html);
+    const $ = cheerio.load(tpl);
     const $that = $('body').children();
 
     $that.attr('data-mq-options', htmlEncode(JSON.stringify(item.options)));
