@@ -2,8 +2,9 @@
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
+const Mustache = require('mustache');
 const child_process = require('child_process');
-const spawn = child_process.spawn;
+// const spawn = child_process.spawn;
 const exec = child_process.exec;
 
 const htmlEncode = require('htmlencode').htmlEncode;
@@ -57,16 +58,19 @@ const baseJS = `
 function getPageBody(content) {
   let body = '';
   content.forEach((item) => {
-    if (!item.html) {
+    let tpl = item.html;
+    tpl = Mustache.render(tpl, JSON.parse(item.vars || '{}'));
+    if (!tpl) {
       return;
     }
-    const $ = cheerio.load(item.html);
+    const $ = cheerio.load(tpl);
     const $that = $('body').children();
 
-    $that.attr('data-mq-options', htmlEncode(JSON.stringify(item.options)));
+    $that.attr('data-mq-options', htmlEncode(item.options));
 
-    if (item.style) {
-      $that.css(item.style);
+    const styleObj = item.style ? JSON.parse(item.style) : '';
+    if (styleObj) {
+      $that.css(styleObj);
     }
 
     addDirectiveToStr($that, item.directives);
@@ -336,12 +340,24 @@ exports.componentsDev = function (req, res, next) {
       if (heHEHE instanceof Function) {
         heHEHE(document.querySelector('#${ htmlId }').children[0]);
       }
-    `
+    `;
+
+    const DEVHTMLJS = `
+      /* eslint-disable */
+      import Mustache from 'mustache';
+      import html from './template_dev.html';
+
+      const data = '${component.vars}';
+      const compiledHTML = Mustache.render(html, JSON.parse(data || '{}'));
+      export default compiledHTML;
+    `;
 
     const DEVJSPATH = path.join(entrPath, 'template_dev.js');
     const DEVHTMLPATH = path.join(entrPath, 'template_dev.html');
+    const DEVHTMLJSPATH = path.join(entrPath, 'template_dev_html.js');
     fs.writeFile(DEVJSPATH, DEVJS, 'utf8', err => {if (err) {console.log('DEV 文件失败')}});
     fs.writeFile(DEVHTMLPATH, DEVHTML, 'utf8', err => {if (err) {console.log('DEV 文件失败')}});
+    fs.writeFile(DEVHTMLJSPATH, DEVHTMLJS, 'utf8', err => {if (err) {console.log('DEV 文件失败')}});
 
     res.json(utils.dataWrap());
   })();
@@ -412,13 +428,13 @@ exports.doStructure = function (req, res, next) {
 
     res.json(utils.dataWrap(null));
 
-    const productname = firstProject.name;
     let cmd = `node build/build.js --environment ${environment} --pageObjs ${Buffer.from(JSON.stringify(pageObjs)).toString('base64')} `;
     if (firstProject) {
       let publicPath = firstProject.publicPath;
       if (environment === EVNS.TEST) {
         publicPath = firstProject.testPublicPath;
       }
+      const productname = firstProject.name;
       cmd += ` --productname ${productname} `;
       if (firstProject.commonSrc) {
         cmd += ` --commonSrc ${Buffer.from(JSON.stringify(firstProject.commonSrc)).toString('base64')} `;
