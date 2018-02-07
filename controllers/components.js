@@ -4,8 +4,8 @@ const path = require('path');
 const Component = require('../models/components.js');
 const utils = require('../utils');
 const CONFIG = require('../config.js');
-const swig = require('swig');
-const readFile = require('../utils/readFile');
+// const swig = require('swig');
+// const readFile = require('../utils/readFile');
 
 exports.addComponent = function (req, res, next) {
 	const body = req.body;
@@ -29,24 +29,24 @@ exports.addComponent = function (req, res, next) {
 
 };
 
-exports.getComponentHTMLById = function (req, res, next) {
-  const id = req.query.id;
-  if (!id) {
-    res.json(utils.dataWrap('没有id', '', -1))
-    return;
-  }
-  (async function () {
-    result = await Component.findOne({_id: id}).exec();
-    let fileHtml = readFile(path.join(CONFIG.COMPath, result.pathHTML));
+// exports.getComponentHTMLById = function (req, res, next) {
+//   const id = req.query.id;
+//   if (!id) {
+//     res.json(utils.dataWrap('没有id', '', -1))
+//     return;
+//   }
+//   (async function () {
+//     result = await Component.findOne({_id: id}).exec();
+//     let fileHtml = readFile(path.join(CONFIG.COMPath, result.pathHTML));
 
-    if (fileHtml) {
-      const tpl = swig.compile(fileHtml);
-      fileHtml = tpl(result.vars);
-    }
+//     if (fileHtml) {
+//       const tpl = swig.compile(fileHtml);
+//       fileHtml = tpl(result.vars);
+//     }
 
-    res.json(utils.dataWrap(fileHtml));
-  })();
-};
+//     res.json(utils.dataWrap(fileHtml));
+//   })();
+// };
 
 exports.getComponents = function (req, res, next) {
 	const query = req.query;
