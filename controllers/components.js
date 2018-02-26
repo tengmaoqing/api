@@ -55,54 +55,57 @@ exports.getComponents = function (req, res, next) {
   const q = query.q;
 
   (async function(){
-    let result = null;
-    if (query._id) {
-      result = await Component.findOne({_id: query._id}).exec();
+    try {
+      let result = null;
+      if (query._id) {
+        result = await Component.findOne({_id: query._id}).exec();
 
-      result = result.toObject();
-      if (result.pathHTML) {
-        let fileHtml = await new Promise((resolve, reject) => {
-          fs.readFile(path.join(CONFIG.COMPath, result.pathHTML), 'utf-8', (err, data) => {
-            if (err) {
-              return resolve('');
-            }
-            return resolve(data);
+        result = result.toObject();
+        if (result.pathHTML) {
+          let fileHtml = await new Promise((resolve, reject) => {
+            fs.readFile(path.join(CONFIG.COMPath, result.pathHTML), 'utf-8', (err, data) => {
+              if (err) {
+                return resolve('');
+              }
+
+              return resolve(data);
+            });
           });
-        });
 
-
-        result.html = fileHtml ? fileHtml : result.html;
-      }
-
-    } else {
-
-      let queryObj = {
-        disabled: {
-          $ne: true
-        },
-      };
-
-      if (q) {
-        queryObj.$or = [
-          {name: {$regex: q}},
-          {description: {$regex: q}},
-        ];
-      }
-
-      result = await Component.paginate(queryObj, {
-        page: currentPage,
-        limit: pageSize,
-        sort: {
-          createDate: -1
+          result.html = fileHtml ? fileHtml : result.html;
         }
-      });
-    }
 
-    res.json(utils.dataWrap(result));
-  })().catch(err => {
-    err.status = 500;
-    return next(err);
-  });
+      } else {
+
+        let queryObj = {
+          disabled: {
+            $ne: true
+          },
+        };
+
+        if (q) {
+          queryObj.$or = [
+            {name: {$regex: q}},
+            {description: {$regex: q}},
+          ];
+        }
+
+        result = await Component.paginate(queryObj, {
+          page: currentPage,
+          limit: pageSize,
+          sort: {
+            createDate: -1
+          }
+        });
+      }
+
+      res.json(utils.dataWrap(result));
+
+    } catch (err) {
+      err.status = 500;
+      return next(err);
+    }
+  })();
 
 };
 

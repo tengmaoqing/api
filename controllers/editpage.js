@@ -55,20 +55,25 @@ const baseJS = `
   };
 `;
 
-function getPageBody(content) {
+function getPageBody(content, ENV) {
   let body = '';
   content.forEach((item) => {
-    let tpl = item.html;
-    tpl = Mustache.render(tpl, JSON.parse(item.vars || '{}'));
-    if (!tpl) {
+    if (!item.html) {
       return;
     }
+    let tpl = item.html;
+    if (EVNS.DEV === ENV) {
+      tpl = tpl.replace(/{%/g, '{{').replace(/%}/g, '}}');
+    }
+    tpl = Mustache.render(tpl, JSON.parse(item.vars || '{}'));
     const $ = cheerio.load(tpl);
     const $that = $('body').children();
 
-    $that.attr('data-mq-options', htmlEncode(item.options));
+    const options = item.options;
+    $that.attr('data-mq-options', htmlEncode(options));
 
     const styleObj = item.style ? JSON.parse(item.style) : '';
+
     if (styleObj) {
       $that.css(styleObj);
     }
@@ -89,10 +94,10 @@ function getPageBody(content) {
   return body;
 }
 
-function getPageStr(content, template) {
+function getPageStr(content, template, ENV) {
 
   const $html = cheerio.load(template, {decodeEntities: false});
-  const bodyStr = getPageBody(content);
+  const bodyStr = getPageBody(content, ENV);
   $html('body>*').remove(':not(script):not(link)');
   $html('body').prepend(bodyStr);
 
@@ -232,7 +237,7 @@ function buildTempFile (page, opt) {
 
     const html = {
       path: `${entrPath}/${HTMLFILE}`,
-      content: getPageStr(content, template),
+      content: getPageStr(content, template, ENV),
     };
     return PackagePage.package(js, html);
   })();
@@ -278,7 +283,7 @@ exports.packagePage = function (req, res, next) {
   const options = {
     entry: 'template_test.js',
     tpl: 'template_test.html',
-    env: 'dev'
+    env: EVNS.DEV
   };
 
   (async function () {
@@ -347,8 +352,13 @@ exports.componentsDev = function (req, res, next) {
       import Mustache from 'mustache';
       import html from './template_dev.html';
 
-      const data = '${component.vars}';
-      const compiledHTML = Mustache.render(html, JSON.parse(data || '{}'));
+      const replaceMustacheTag = html => {
+        let nh = html.replace(/{%/g, '{{').replace(/%}/g, '}}');
+        return nh;
+      };
+
+      const data = '${component.vars || ''}';
+      const compiledHTML = Mustache.render(replaceMustacheTag(html), JSON.parse(data || '{}'));
       export default compiledHTML;
     `;
 
